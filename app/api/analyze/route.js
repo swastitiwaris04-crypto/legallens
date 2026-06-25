@@ -87,19 +87,19 @@ ${documentText}`
       result = JSON.parse(cleanText)
     } catch {
       const jsonMatch = cleanText.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
+      if (!jsonMatch) throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
+      try {
+        result = JSON.parse(jsonMatch[0])
+      } catch {
+        const fixed = jsonMatch[0]
+          .replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+          .replace(/(?<!\\)\\(?!["\\\/bfnrtu])/g, '\\\\')
         try {
-          result = JSON.parse(jsonMatch[0])
-        } catch {
-          const fixed = jsonMatch[0]
-            .replace(/(?<!\\)\\(?!["\\\/bfnrtu])/g, '\\\\')
-            .replace(/\n/g, '\\n')
-            .replace(/\r/g, '\\r')
-            .replace(/\t/g, '\\t')
           result = JSON.parse(fixed)
+        } catch {
+          console.error('Failed to parse Gemini JSON:', rawText.substring(0, 500))
+          throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
         }
-      } else {
-        throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
       }
     }
 
