@@ -70,7 +70,7 @@ ${documentText}`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 8192, response_mime_type: 'application/json' },
+          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 65536, response_mime_type: 'application/json' },
         }),
       }
     )
