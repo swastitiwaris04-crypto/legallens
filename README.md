@@ -1,26 +1,32 @@
 # LegalLens
 
-AI-powered legal document analysis for Indian users. Upload rent agreements, property papers, or contracts — our AI explains every clause in plain language.
+> **Live:** [legallens-sage.vercel.app](https://legallens-sage.vercel.app/)
+
+AI-powered legal document analysis for Indian users. Upload rent agreements, property papers, or contracts — AI explains every clause in plain language.
 
 Built with Next.js 14, Supabase, and Google Gemini 2.5 Flash.
+
+---
 
 ## Features
 
 - **AI Analysis** — Google Gemini reads your document and identifies clauses, obligations, risks, and monetary amounts
-- **Plain Language** — Complex legal jargon explained in simple Hindi, Marathi, Tamil, Telugu, Bengali, or English
-- **Secure Storage** — Documents stored in Supabase Storage with per-user RLS policies
+- **Plain Language** — Complex legal jargon explained in Hindi, Marathi, Tamil, Telugu, Bengali, or English
+- **Secure Storage** — Documents encrypted in Supabase Storage with per-user access policies
 - **Interactive Chat** — Ask follow-up questions about any analyzed document
 - **Dashboard** — View all your documents and their analysis in one place
 - **Reminders** — Set reminders for rent payments, renewal dates, and more
 
 ## Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
-- **Auth:** Supabase Auth (email/password + Google OAuth)
-- **Database:** Supabase PostgreSQL
-- **Storage:** Supabase Storage
-- **AI:** Google Gemini 2.5 Flash API
-- **Styling:** Tailwind CSS + CSS variables + `styled-jsx`
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Auth | Supabase Auth (email/password + Google OAuth) |
+| Database | Supabase PostgreSQL |
+| Storage | Supabase Storage |
+| AI | Google Gemini 2.5 Flash |
+| Styling | Tailwind CSS + CSS variables + styled-jsx |
 
 ## Getting Started
 
@@ -32,36 +38,20 @@ Built with Next.js 14, Supabase, and Google Gemini 2.5 Flash.
 
 ### Setup
 
-1. Clone the repo:
-
 ```bash
-git clone https://github.com/your-username/legallens.git
+git clone https://github.com/swastitiwaris04-crypto/legallens.git
 cd legallens
-```
-
-2. Install dependencies:
-
-```bash
 npm install
-```
-
-3. Copy the example env file and fill in your keys:
-
-```bash
 cp .env.example .env.local
 ```
 
-4. Set up your Supabase project:
-
-   - Run `supabase-schema.sql` in your Supabase SQL Editor to create tables, RLS policies, and storage
-
-5. Start the dev server:
+Fill in your keys in `.env.local`, then run the SQL in `supabase-schema.sql` in your Supabase SQL Editor.
 
 ```bash
 npm run dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000)
 
 ### Environment Variables
 
@@ -96,5 +86,3 @@ legallens/
 ├── next.config.js        # Next.js configuration
 └── tailwind.config.js    # Tailwind CSS configuration
 ```
-
-
