@@ -25,10 +25,10 @@ export async function POST(request) {
     }
 
     const prompt = `You are a senior Indian legal expert helping common people understand legal documents.
-Analyze the following legal document thoroughly and respond ONLY with a valid JSON object.
+Analyze the following legal document thoroughly and return a JSON object.
 Respond in ${language} language for the explanation fields.
 
-Return this exact JSON structure (no markdown, no backticks, just raw JSON):
+Return this exact JSON structure:
 {
   "document_type": "string",
   "risk_score": "Low" | "Medium" | "High",
@@ -70,7 +70,7 @@ ${documentText}`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 8192 },
+          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 8192, response_mime_type: 'application/json' },
         }),
       }
     )
@@ -93,15 +93,8 @@ ${documentText}`
       try {
         result = JSON.parse(jsonMatch[0])
       } catch {
-        const fixed = jsonMatch[0]
-          .replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
-          .replace(/(?<!\\)\\(?!["\\\/bfnrtu])/g, '\\\\')
-        try {
-          result = JSON.parse(fixed)
-        } catch {
-          console.error('Failed to parse Gemini JSON. First 1000 chars:', rawText.substring(0, 1000))
-          throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
-        }
+        console.error('Failed to parse Gemini JSON. First 1000 chars:', rawText.substring(0, 1000))
+        throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
       }
     }
 
