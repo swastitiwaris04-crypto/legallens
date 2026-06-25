@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
@@ -10,7 +10,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 )
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
@@ -142,5 +142,19 @@ export default function LoginPage() {
         </div>
       </div>
     </PageTransition>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: 'calc(100vh - 68px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 24px', background: 'var(--bg-primary)' }}>
+        <div style={{ width: '100%', maxWidth: 420, textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: 15, color: 'var(--text-muted)' }}>Loading...</div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
