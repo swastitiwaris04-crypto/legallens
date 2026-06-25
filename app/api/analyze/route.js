@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@/lib/supabase/admin'
 import { checkRateLimit, getRateLimitKey } from '@/lib/rateLimiter'
 import { AppError, errorHandler } from '@/lib/errors'
 
@@ -84,7 +85,8 @@ ${documentText}`
     }
 
     if (documentId) {
-      const { error: upsertError } = await supabase.from('analyses').upsert(
+      const admin = createAdminClient()
+      const { error: upsertError } = await admin.from('analyses').upsert(
         {
           document_id: documentId,
           user_id: user.id,
