@@ -1,28 +1,10 @@
-export default function ExportButton({ documentId, onClick }) {
-  const handleClick = async () => {
-    if (documentId) {
-      try {
-        const res = await fetch('/api/share', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ documentId, expiresInDays: 7 }),
-        });
-        const data = await res.json();
-        if (data.shareUrl) {
-          await navigator.clipboard.writeText(data.shareUrl);
-          if (onClick) onClick('Share link copied to clipboard!');
-        }
-      } catch {
-        if (onClick) onClick(onClick);
-      }
-    } else if (onClick) {
-      onClick();
-    }
-  };
+'use client';
+import { exportAnalysisToPDF } from '@/lib/exportPDF';
 
+export default function ExportButton({ data, onClick }) {
   return (
     <button
-      onClick={handleClick}
+      onClick={() => { exportAnalysisToPDF(data); if (onClick) onClick('Summary downloaded!'); }}
       className="btn-primary"
       style={{ padding: '10px 18px', fontSize: 13 }}
       aria-label="Download PDF summary"

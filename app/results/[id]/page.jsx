@@ -95,6 +95,7 @@ export default function ResultsPage() {
         docType={data.document_type}
         language={data.language}
         documentId={params.id}
+        data={data}
       />
       <div className="results-layout">
         <div className="results-main">
