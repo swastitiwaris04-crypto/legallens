@@ -30,15 +30,17 @@ Respond in ${language} for explanation fields.
 Return max 5 clauses, max 3 obligations, max 3 key amounts, max 3 key dates, max 3 suggested questions.
 Keep all text explanations under 3 sentences each.
 
+Use real content. simple_summary must be a 2-3 sentence plain language summary of the document.
+
 JSON structure:
 {
   "document_type": "string",
   "risk_score": "Low" | "Medium" | "High",
   "risk_score_number": 0-100,
-  "risk_reason": "short string",
-  "simple_summary": "short string",
-  "clauses": [{ "id": "string", "title": "string", "original_text": "string", "simple_explanation": "short string", "is_red_flag": boolean, "severity": "standard" | "review" | "red_flag" }],
-  "obligations": [{ "description": "short string", "deadline": "string", "responsible_party": "string", "is_critical": boolean }],
+  "risk_reason": "string",
+  "simple_summary": "string",
+  "clauses": [{ "id": "string", "title": "string", "original_text": "string", "simple_explanation": "string", "is_red_flag": boolean, "severity": "standard" | "review" | "red_flag" }],
+  "obligations": [{ "description": "string", "deadline": "string", "responsible_party": "string", "is_critical": boolean }],
   "key_amounts": [{ "label": "string", "amount": "string" }],
   "key_dates": [{ "label": "string", "date": "string" }],
   "your_rights": ["string"],
