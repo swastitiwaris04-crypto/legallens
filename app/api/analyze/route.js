@@ -77,8 +77,10 @@ ${documentText}`
 
     const data = await response.json()
     if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.error('Gemini API error:', JSON.stringify(data))
-      throw new AppError('AI analysis failed: ' + (data.error?.message || 'Unexpected response'), 502, 'AI_ERROR')
+      const block = data.promptFeedback?.blockReason
+      const msg = data.error?.message || data.candidates?.[0]?.finishReason || block || 'Unexpected response'
+      console.error('Gemini API error:', JSON.stringify(data).substring(0, 2000))
+      throw new AppError('AI analysis failed: ' + msg, 502, 'AI_ERROR')
     }
     const rawText = data.candidates[0].content.parts[0].text
     const cleanText = rawText.replace(/```json|```/g, '').trim()
@@ -97,7 +99,7 @@ ${documentText}`
         try {
           result = JSON.parse(fixed)
         } catch {
-          console.error('Failed to parse Gemini JSON:', rawText.substring(0, 500))
+          console.error('Failed to parse Gemini JSON. First 1000 chars:', rawText.substring(0, 1000))
           throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
         }
       }
