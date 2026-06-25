@@ -24,12 +24,8 @@ function LoginForm() {
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    } else {
-      router.push(redirect)
-    }
+    if (error) { setError(error.message); setLoading(false); return }
+    window.location.href = redirect
   }
 
   const handleGoogleLogin = async () => {

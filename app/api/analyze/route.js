@@ -82,7 +82,26 @@ ${documentText}`
     }
     const rawText = data.candidates[0].content.parts[0].text
     const cleanText = rawText.replace(/```json|```/g, '').trim()
-    const result = JSON.parse(cleanText)
+    let result
+    try {
+      result = JSON.parse(cleanText)
+    } catch {
+      const jsonMatch = cleanText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          result = JSON.parse(jsonMatch[0])
+        } catch {
+          const fixed = jsonMatch[0]
+            .replace(/(?<!\\)\\(?!["\\\/bfnrtu])/g, '\\\\')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t')
+          result = JSON.parse(fixed)
+        }
+      } else {
+        throw new AppError('AI returned invalid JSON', 502, 'AI_PARSE_ERROR')
+      }
+    }
 
     if (documentId) {
       const { error: upsertError } = await supabase.from('analyses').upsert(
