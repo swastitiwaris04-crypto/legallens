@@ -24,20 +24,35 @@ export async function POST(request) {
       throw new AppError('Document text is too short', 400, 'TEXT_TOO_SHORT')
     }
 
-    const prompt = `You are a senior Indian legal expert. Analyze this legal document and return a concise JSON.
-Respond in ${language} for explanation fields.
-Return max 5 clauses, max 3 obligations, max 3 key amounts, max 3 key dates, max 3 suggested questions.
-Keep all text explanations under 3 sentences each.
+    const prompt = `You are a senior Indian legal expert helping common people understand legal documents.
+Analyze the following legal document thoroughly and return a JSON object.
+Respond in ${language} language for the explanation fields.
 
-JSON structure:
+Return this exact JSON structure:
 {
   "document_type": "string",
   "risk_score": "Low" | "Medium" | "High",
-  "risk_score_number": 0-100,
-  "risk_reason": "short string",
-  "simple_summary": "short string",
-  "clauses": [{ "id": "string", "title": "string", "original_text": "string", "simple_explanation": "short string", "is_red_flag": boolean, "severity": "standard" | "review" | "red_flag" }],
-  "obligations": [{ "description": "short string", "deadline": "string", "responsible_party": "string", "is_critical": boolean }],
+  "risk_score_number": number between 0-100,
+  "risk_reason": "string",
+  "simple_summary": "string",
+  "key_facts": [{ "label": "string", "value": "string" }],
+  "clauses": [{
+    "id": "string",
+    "title": "string",
+    "original_text": "string",
+    "simple_explanation": "string",
+    "is_red_flag": boolean,
+    "red_flag_reason": "string",
+    "severity": "standard" | "review" | "red_flag",
+    "your_rights": "string or null"
+  }],
+  "obligations": [{
+    "id": "string",
+    "description": "string",
+    "deadline": "string",
+    "responsible_party": "string",
+    "is_critical": boolean
+  }],
   "key_amounts": [{ "label": "string", "amount": "string" }],
   "key_dates": [{ "label": "string", "date": "string" }],
   "your_rights": ["string"],
@@ -45,7 +60,7 @@ JSON structure:
   "suggested_questions": ["string"]
 }
 
-Document:
+Document to analyze:
 ${documentText}`
 
     const response = await fetch(
@@ -55,7 +70,7 @@ ${documentText}`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 8192, response_mime_type: 'application/json' },
+          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 65536, response_mime_type: 'application/json' },
         }),
       }
     )
