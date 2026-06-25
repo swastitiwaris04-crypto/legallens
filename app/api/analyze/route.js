@@ -1,0 +1,110 @@
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, getRateLimitKey } from '@/lib/rateLimiter'
+import { AppError, errorHandler } from '@/lib/errors'
+
+export async function POST(request) {
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new AppError('Authentication required', 401, 'UNAUTHORIZED')
+
+    const rateKey = getRateLimitKey(request, user.id)
+    const rateCheck = checkRateLimit(rateKey, 10)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: `Rate limit exceeded. Try again in ${rateCheck.retryAfter} seconds.`, code: 'RATE_LIMITED' },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
+      )
+    }
+
+    const { documentText, language = 'English', documentId } = await request.json()
+
+    if (!documentText || documentText.trim().length < 50) {
+      throw new AppError('Document text is too short', 400, 'TEXT_TOO_SHORT')
+    }
+
+    const prompt = `You are a senior Indian legal expert helping common people understand legal documents.
+Analyze the following legal document thoroughly and respond ONLY with a valid JSON object.
+Respond in ${language} language for the explanation fields.
+
+Return this exact JSON structure (no markdown, no backticks, just raw JSON):
+{
+  "document_type": "string",
+  "risk_score": "Low" | "Medium" | "High",
+  "risk_score_number": number between 0-100,
+  "risk_reason": "string",
+  "simple_summary": "string",
+  "key_facts": [{ "label": "string", "value": "string" }],
+  "clauses": [{
+    "id": "string",
+    "title": "string",
+    "original_text": "string",
+    "simple_explanation": "string",
+    "is_red_flag": boolean,
+    "red_flag_reason": "string",
+    "severity": "standard" | "review" | "red_flag",
+    "your_rights": "string or null"
+  }],
+  "obligations": [{
+    "id": "string",
+    "description": "string",
+    "deadline": "string",
+    "responsible_party": "string",
+    "is_critical": boolean
+  }],
+  "key_amounts": [{ "label": "string", "amount": "string" }],
+  "key_dates": [{ "label": "string", "date": "string" }],
+  "your_rights": ["string"],
+  "red_flag_count": number,
+  "suggested_questions": ["string"]
+}
+
+Document to analyze:
+${documentText}`
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, topP: 0.8, maxOutputTokens: 8192 },
+        }),
+      }
+    )
+
+    const data = await response.json()
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error('Gemini API error:', JSON.stringify(data))
+      throw new AppError('AI analysis failed: ' + (data.error?.message || 'Unexpected response'), 502, 'AI_ERROR')
+    }
+    const rawText = data.candidates[0].content.parts[0].text
+    const cleanText = rawText.replace(/```json|```/g, '').trim()
+    const result = JSON.parse(cleanText)
+
+    if (documentId) {
+      const { error: upsertError } = await supabase.from('analyses').upsert(
+        {
+          document_id: documentId,
+          user_id: user.id,
+          document_type: result.document_type,
+          risk_score: result.risk_score,
+          risk_score_num: result.risk_score_number,
+          risk_reason: result.risk_reason,
+          result_json: result,
+          red_flag_count: result.red_flag_count || 0,
+        },
+        { onConflict: 'document_id' }
+      )
+      if (upsertError) {
+        console.error('Failed to save analysis:', upsertError)
+      }
+    }
+
+    return NextResponse.json({ ...result, id: documentId })
+  } catch (error) {
+    return errorHandler(error)
+  }
+}
