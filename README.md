@@ -97,6 +97,4 @@ legallens/
 └── tailwind.config.js    # Tailwind CSS configuration
 ```
 
-## License
 
-MIT
